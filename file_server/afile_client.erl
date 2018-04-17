@@ -1,18 +1,25 @@
 -module(afile_client).
--export([start/1, loop/1]).
+-export([ls/1, get_file/2, put_file/3]).
 
-% list_dir
-% get_file
+%% client to hide the messaging protocol
 
-start(Dir) ->
-   spawn(afile_server, loop, [Dir])
-
-loop(Dir) ->
+ls(Server) ->
+    Server ! {self(), list_dir},
     receive
-        {Client, list_dir} ->
-            Client ! {self(), file:list_dir(Dir)};
-        {Client, {get_file, File}} ->
-            Full = filename:join([Dir, File]),
-            Client ! {self(), file:read(Full)}
-    end,
-    loop(Dir).
+        {Server, List} ->
+            List
+    end.
+
+get_file(Server, File) ->
+    Server ! {self(), {get_file, File}},
+    receive
+        {Server, Content} ->
+            Content
+    end.
+
+put_file(Server, FileName, Content) ->
+    Server ! {self(), {put_file, FileName, Content}},
+    receive
+        {Server, State} ->
+            State
+    end.
