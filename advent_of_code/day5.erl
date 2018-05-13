@@ -9,7 +9,8 @@ run() ->
     Lines = binary:split(Data, [<<"\n">>], [global, trim]),
     Lines1 = lists:filter(
                fun(Elem) ->
-                       has_vowel(Elem, 0) and has_no_naughty_char(Elem) and has_repeatition(Elem)
+                       %% has_vowel(Elem, 0) and has_no_naughty_char(Elem) and has_repeatition(Elem)
+                       has_upgraded_repeatition(Elem)
                end, Lines),
     erlang:display({length(Lines), length(Lines1)}).
 
@@ -35,4 +36,14 @@ has_repeatition(Elem) ->
     case re:run(Elem, "(.)\\1", []) of
         nomatch -> false;
         _ -> true
+    end.
+
+%% It contains a pair of any two letters that appears at least, twice in the string without overlapping,
+%% like xyxy (xy) or aabcdefgaa (aa), but not like aaa (aa, but it overlaps).
+%% It contains at least one letter which repeats with exactly one letter between them,
+%% like xyx, abcdefeghi (efe), or even aaa.
+has_upgraded_repeatition(Elem) ->
+    case {re:run(Elem, "(.)(.).*\\1\\2", []), re:run(Elem, "(.).{1}\\1", [])} of
+        {{match, _}, {match, _}} -> true;
+        _ -> false
     end.
